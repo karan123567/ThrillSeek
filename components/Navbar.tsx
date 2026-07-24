@@ -1,25 +1,43 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Mountain, Search, Heart, Menu, X } from "lucide-react";
+import { Mountain, Search, Heart, Menu, X, LogIn, LogOut } from "lucide-react";
 import { useToast } from "./Toast";
+import { useAuth } from "./auth/AuthProvider";
+import { useWishlist } from "./wishlist/WishlistProvider";
 import ThemeToggle from "./ThemeToggle";
 
 interface NavbarProps {
   onOpenSearch: () => void;
   onOpenProfile: () => void;
+  onOpenAuth: () => void;
+  onOpenWishlist: () => void;
 }
 
-export default function Navbar({ onOpenSearch, onOpenProfile }: NavbarProps) {
+export default function Navbar({
+  onOpenSearch,
+  onOpenProfile,
+  onOpenAuth,
+  onOpenWishlist,
+}: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { showToast } = useToast();
+  const { user, logout, loading: authLoading } = useAuth();
+  const { count: wishlistCount } = useWishlist();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 80);
     window.addEventListener("scroll", handler);
     return () => window.removeEventListener("scroll", handler);
   }, []);
+
+  // Listen for custom auth event from WishlistModal
+  useEffect(() => {
+    const handler = () => onOpenAuth();
+    window.addEventListener("open-auth", handler);
+    return () => window.removeEventListener("open-auth", handler);
+  }, [onOpenAuth]);
 
   const links = [
     { label: "Adventures", href: "#adventures" },
@@ -39,7 +57,7 @@ export default function Navbar({ onOpenSearch, onOpenProfile }: NavbarProps) {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
             <Mountain className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-semibold tracking-tighter text-th-text hidden sm:inline">
+          <span className="text-xl font-semibold tracking-tighter text-th-text">
             Thrill<span className="text-brand-500">Seek</span>
           </span>
         </a>
@@ -75,25 +93,73 @@ export default function Navbar({ onOpenSearch, onOpenProfile }: NavbarProps) {
           >
             <Search className="w-4 h-4 text-th-text-sub" />
           </button>
-          <button
-            onClick={() => showToast("Your wishlist has 3 adventures", "info")}
-            className="relative w-10 h-10 rounded-xl bg-th-input border border-th-border flex items-center justify-center hover:bg-th-card-hover transition-all"
-          >
-            <Heart className="w-4 h-4 text-th-text-sub" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-brand-500 text-[9px] font-bold flex items-center justify-center text-white">
-              3
-            </span>
-          </button>
-          <button
-            onClick={onOpenProfile}
-            className="w-10 h-10 rounded-xl overflow-hidden border-2 border-th-border hover:border-brand-500/50 transition-all"
-          >
-            <img
-              src="https://picsum.photos/seed/userprofile/80/80"
-              className="w-full h-full object-cover"
-              alt="Profile"
-            />
-          </button>
+
+          {/* Wishlist — only when logged in */}
+          {user && !authLoading && (
+            <button
+              onClick={onOpenWishlist}
+              className="relative w-10 h-10 rounded-xl bg-th-input border border-th-border flex items-center justify-center hover:bg-th-card-hover transition-all"
+            >
+              <Heart className="w-4 h-4 text-th-text-sub" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 rounded-full bg-brand-500 text-[9px] font-bold flex items-center justify-center text-white px-1">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Logged In */}
+          {user && !authLoading && (
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={onOpenProfile}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-th-card-hover transition-all"
+              >
+                <div className="w-8 h-8 rounded-lg overflow-hidden border border-th-border">
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      className="w-full h-full object-cover"
+                      alt=""
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-xs font-bold">
+                      {user.displayName?.charAt(0) ||
+                        user.email?.charAt(0) ||
+                        "U"}
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm text-th-text-sub max-w-[100px] truncate">
+                  {user.displayName || user.email?.split("@")[0]}
+                </span>
+              </button>
+              <button
+                onClick={logout}
+                className="w-10 h-10 rounded-xl bg-th-input border border-th-border flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/30 transition-all group"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4 text-th-text-sub group-hover:text-red-400 transition-colors" />
+              </button>
+            </div>
+          )}
+
+          {/* Logged Out */}
+          {!user && !authLoading && (
+            <button
+              onClick={onOpenAuth}
+              className="btn-primary px-4 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2"
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign In</span>
+            </button>
+          )}
+
+          {authLoading && (
+            <div className="w-10 h-10 rounded-xl bg-th-input border border-th-border animate-pulse" />
+          )}
+
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="lg:hidden w-10 h-10 rounded-xl bg-th-input border border-th-border flex items-center justify-center hover:bg-th-card-hover transition-all"
@@ -107,6 +173,7 @@ export default function Navbar({ onOpenSearch, onOpenProfile }: NavbarProps) {
         </div>
       </div>
 
+      {/* Mobile menu */}
       {mobileOpen && (
         <div className="lg:hidden mx-4 mb-4 glass-strong rounded-2xl p-4 animate-slide-down">
           {links.map((l) => (
@@ -119,6 +186,43 @@ export default function Navbar({ onOpenSearch, onOpenProfile }: NavbarProps) {
               {l.label}
             </a>
           ))}
+          {user ? (
+            <>
+              <button
+                onClick={() => {
+                  onOpenWishlist();
+                  setMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-th-text-sub hover:bg-th-card-hover rounded-xl transition-all text-left mt-2"
+              >
+                <Heart className="w-4 h-4" /> Wishlist
+                {wishlistCount > 0 && (
+                  <span className="ml-auto text-xs bg-brand-500/20 text-brand-400 px-2 py-0.5 rounded-full">
+                    {wishlistCount}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  logout();
+                  setMobileOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-left"
+              >
+                <LogOut className="w-4 h-4" /> Sign Out
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => {
+                onOpenAuth();
+                setMobileOpen(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm text-brand-400 hover:bg-brand-500/10 rounded-xl transition-all text-left mt-2"
+            >
+              <LogIn className="w-4 h-4" /> Sign In
+            </button>
+          )}
         </div>
       )}
     </nav>

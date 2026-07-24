@@ -19,6 +19,8 @@ import ProfileModal from "@/components/ProfileModal";
 import ProviderModal from "@/components/ProviderModal";
 import ReviewModal from "@/components/ReviewModal";
 import DetailModal from "@/components/DetailModal";
+import AuthModal from "@/components/auth/AuthModal";
+import WishlistModal from "@/components/wishlist/WishlistModal";
 import ScrollReveal from "@/components/ScrollReveal";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import { adventures } from "@/lib/data";
@@ -35,6 +37,8 @@ export default function Home() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
 
   /* ---- filter state ---- */
   const [activeQuickFilter, setActiveQuickFilter] = useState("all");
@@ -45,7 +49,6 @@ export default function Home() {
     const cat = (document.getElementById("filterCategory") as HTMLSelectElement | null)?.value || "all";
     const diff = (document.getElementById("filterDifficulty") as HTMLSelectElement | null)?.value || "all";
     const maxPrice = parseInt((document.getElementById("filterPrice") as HTMLInputElement | null)?.value || "50000");
-
     return adventures.filter((a) => {
       if (loc && !a.name.toLowerCase().includes(loc) && !a.location.toLowerCase().includes(loc)) return false;
       if (cat !== "all" && a.category !== cat) return false;
@@ -59,7 +62,6 @@ export default function Home() {
     });
   }, [activeQuickFilter]);
 
-  /* re-filter whenever quickFilter or getFiltered changes */
   useEffect(() => {
     setFiltered(getFiltered());
   }, [getFiltered]);
@@ -99,15 +101,35 @@ export default function Home() {
     }, 0);
   };
 
-  const openDetail = (id: number) => { setDetailId(id); setDetailOpen(true); };
-  const closeAll = () => { setSearchOpen(false); setProfileOpen(false); setProviderOpen(false); setReviewOpen(false); setDetailOpen(false); };
+  const openDetail = (id: number) => {
+    setDetailId(id);
+    setDetailOpen(true);
+  };
+
+  const closeAll = () => {
+    setSearchOpen(false);
+    setProfileOpen(false);
+    setProviderOpen(false);
+    setReviewOpen(false);
+    setDetailOpen(false);
+    setAuthOpen(false);
+    setWishlistOpen(false);
+  };
 
   return (
     <>
       <ScrollReveal />
-      <KeyboardShortcuts onOpenSearch={() => setSearchOpen(true)} onCloseAll={closeAll} />
+      <KeyboardShortcuts
+        onOpenSearch={() => setSearchOpen(true)}
+        onCloseAll={closeAll}
+      />
 
-      <Navbar onOpenSearch={() => setSearchOpen(true)} onOpenProfile={() => setProfileOpen(true)} />
+      <Navbar
+        onOpenSearch={() => setSearchOpen(true)}
+        onOpenProfile={() => setProfileOpen(true)}
+        onOpenAuth={() => setAuthOpen(true)}
+        onOpenWishlist={() => setWishlistOpen(true)}
+      />
       <Hero />
 
       <section id="adventures" className="relative py-16">
@@ -119,11 +141,21 @@ export default function Home() {
             activeQuickFilter={activeQuickFilter}
             onSetQuickFilter={setActiveQuickFilter}
           />
-          <AdventureGrid adventures={filtered} count={filtered.length} onOpenDetail={openDetail} onSort={handleSort} />
+          <AdventureGrid
+            adventures={filtered}
+            count={filtered.length}
+            onOpenDetail={openDetail}
+            onSort={handleSort}
+          />
         </div>
       </section>
 
-      <Categories onFilterByCategory={filterByCategory} onNotify={() => showToast("You'll be notified when new categories launch!", "success")} />
+      <Categories
+        onFilterByCategory={filterByCategory}
+        onNotify={() =>
+          showToast("You'll be notified when new categories launch!", "success")
+        }
+      />
       <HowItWorks />
       <Destinations />
       <Providers />
@@ -133,11 +165,37 @@ export default function Home() {
       <Footer />
       <NextJSBadge />
 
-      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} onOpenDetail={openDetail} />
-      <ProfileModal isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
-      <ProviderModal isOpen={providerOpen} onClose={() => setProviderOpen(false)} />
-      <ReviewModal isOpen={reviewOpen} onClose={() => setReviewOpen(false)} />
-      <DetailModal isOpen={detailOpen} onClose={() => setDetailOpen(false)} adventureId={detailId} />
+      <SearchModal
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onOpenDetail={openDetail}
+      />
+      <ProfileModal
+        isOpen={profileOpen}
+        onClose={() => setProfileOpen(false)}
+      />
+      <ProviderModal
+        isOpen={providerOpen}
+        onClose={() => setProviderOpen(false)}
+      />
+      <ReviewModal
+        isOpen={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+      />
+      <DetailModal
+        isOpen={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        adventureId={detailId}
+      />
+      <AuthModal
+        isOpen={authOpen}
+        onClose={() => setAuthOpen(false)}
+      />
+      <WishlistModal
+        isOpen={wishlistOpen}
+        onClose={() => setWishlistOpen(false)}
+        onOpenDetail={openDetail}
+      />
     </>
   );
 }

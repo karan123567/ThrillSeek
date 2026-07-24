@@ -4,6 +4,8 @@ import { Heart, MapPin, Clock } from "lucide-react";
 import { Adventure } from "@/lib/types";
 import { difficultyColors } from "@/lib/data";
 import { useToast } from "./Toast";
+import { useWishlist } from "./wishlist/WishlistProvider";
+import { useAuth } from "./auth/AuthProvider";
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -11,7 +13,9 @@ function Stars({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
-          className={i <= Math.round(rating) ? "text-yellow-400" : "text-th-text-faint"}
+          className={
+            i <= Math.round(rating) ? "text-yellow-400" : "text-th-text-faint"
+          }
         >
           ★
         </span>
@@ -34,6 +38,8 @@ export default function AdventureGrid({
   onSort,
 }: Props) {
   const { showToast } = useToast();
+  const { isWished, toggle } = useWishlist();
+  const { user } = useAuth();
 
   return (
     <>
@@ -79,78 +85,94 @@ export default function AdventureGrid({
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {adventures.map((adv, idx) => (
-            <div
-              key={adv.id}
-              className="adventure-card card-hover rounded-2xl overflow-hidden bg-th-card border border-th-border-subtle cursor-pointer group"
-              style={{ animationDelay: `${idx * 0.08}s` }}
-              onClick={() => onOpenDetail(adv.id)}
-            >
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={`https://picsum.photos/seed/${adv.image}/600/400`}
-                  className="card-img w-full h-full object-cover opacity-60 transition-all duration-700"
-                  alt={adv.name}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                <div className="absolute top-3 left-3 flex gap-1.5">
-                  {adv.trending && (
-                    <span className="px-2 py-0.5 rounded-full bg-brand-500/90 text-[10px] font-medium text-white">
-                      Trending
-                    </span>
-                  )}
-                  {adv.isNew && (
-                    <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur text-[10px] font-medium text-white">
-                      New
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showToast(adv.name + " added to wishlist!", "success");
-                  }}
-                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur flex items-center justify-center hover:bg-brand-500/80 transition-all"
-                >
-                  <Heart className="w-3.5 h-3.5 text-white" />
-                </button>
-                <div className="absolute bottom-3 left-3">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${difficultyColors[adv.difficulty]}`}
+          {adventures.map((adv, idx) => {
+            const wished = isWished(adv.id);
+            return (
+              <div
+                key={adv.id}
+                className="adventure-card card-hover rounded-2xl overflow-hidden bg-th-card border border-th-border-subtle cursor-pointer group"
+                style={{ animationDelay: `${idx * 0.08}s` }}
+                onClick={() => onOpenDetail(adv.id)}
+              >
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={`https://picsum.photos/seed/${adv.image}/600/400`}
+                    className="card-img w-full h-full object-cover opacity-60 transition-all duration-700"
+                    alt={adv.name}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                  <div className="absolute top-3 left-3 flex gap-1.5">
+                    {adv.trending && (
+                      <span className="px-2 py-0.5 rounded-full bg-brand-500/90 text-[10px] font-medium text-white">
+                        Trending
+                      </span>
+                    )}
+                    {adv.isNew && (
+                      <span className="px-2 py-0.5 rounded-full bg-white/20 backdrop-blur text-[10px] font-medium text-white">
+                        New
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!user) {
+                        showToast(
+                          "Sign in to save to wishlist",
+                          "info"
+                        );
+                        return;
+                      }
+                      toggle(adv.id);
+                    }}
+                    className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur flex items-center justify-center hover:scale-110 transition-all"
                   >
-                    {adv.difficulty.charAt(0).toUpperCase() +
-                      adv.difficulty.slice(1)}
-                  </span>
+                    <Heart
+                      className="w-3.5 h-3.5 transition-all duration-300"
+                      style={{
+                        color: wished ? "#ff6b2c" : "white",
+                        fill: wished ? "currentColor" : "none",
+                      }}
+                    />
+                  </button>
+                  <div className="absolute bottom-3 left-3">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${difficultyColors[adv.difficulty]}`}
+                    >
+                      {adv.difficulty.charAt(0).toUpperCase() +
+                        adv.difficulty.slice(1)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="p-4">
-                <div className="flex items-center gap-1 mb-1.5">
-                  <span className="text-xs">
-                    <Stars rating={adv.rating} />
-                  </span>
-                  <span className="text-[11px] text-th-text-muted ml-1">
-                    {adv.rating} ({adv.reviews})
-                  </span>
-                </div>
-                <h3 className="text-sm font-medium text-th-text mb-1 group-hover:text-brand-400 transition-colors truncate">
-                  {adv.name}
-                </h3>
-                <p className="text-xs text-th-text-muted mb-3 flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {adv.location}
-                </p>
-                <div className="flex items-center justify-between">
-                  <p className="text-base font-semibold text-th-text">
-                    ₹{adv.price.toLocaleString()}
+                <div className="p-4">
+                  <div className="flex items-center gap-1 mb-1.5">
+                    <span className="text-xs">
+                      <Stars rating={adv.rating} />
+                    </span>
+                    <span className="text-[11px] text-th-text-muted ml-1">
+                      {adv.rating} ({adv.reviews})
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-medium text-th-text mb-1 group-hover:text-brand-400 transition-colors truncate">
+                    {adv.name}
+                  </h3>
+                  <p className="text-xs text-th-text-muted mb-3 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {adv.location}
                   </p>
-                  <span className="text-[11px] text-th-text-muted flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {adv.duration}
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <p className="text-base font-semibold text-th-text">
+                      ₹{adv.price.toLocaleString()}
+                    </p>
+                    <span className="text-[11px] text-th-text-muted flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {adv.duration}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </>

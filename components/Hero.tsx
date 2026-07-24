@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ArrowRight, PlusCircle, ShieldCheck, Star } from "lucide-react";
+import { ArrowRight, PlusCircle } from "lucide-react";
 
 export default function Hero() {
   const countersRef = useRef<HTMLDivElement>(null);
@@ -36,71 +36,71 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Background - Using a REAL high-quality Unsplash image of a hiker */}
       <div className="absolute inset-0">
         <img
-          src="https://picsum.photos/seed/adventure-hero-mountain/1920/1080"
-          className="w-full h-full object-cover opacity-40"
-          alt=""
+          src="https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070&auto=format&fit=crop"
+          className="w-full h-full object-cover object-center opacity-50"
+          alt="Hiker looking at mountain view"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/50" />
+        {/* Heavier gradient to ensure text pops perfectly */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-[#0a0a0a]/90 to-[#0a0a0a]/40" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-[#0a0a0a]/60" />
       </div>
-      <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-brand-500/5 blur-[120px]" />
-
-      <div className="absolute top-32 right-20 hidden xl:block animate-float">
-        <div className="glass-dark rounded-2xl p-4 flex items-center gap-3 shadow-lg">
-          <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-            <ShieldCheck className="w-5 h-5 text-green-400" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-white">Verified Providers</p>
-            <p className="text-[10px] text-neutral-500">500+ trusted partners</p>
-          </div>
-        </div>
-      </div>
-      <div
-        className="absolute bottom-40 right-40 hidden xl:block animate-float"
-        style={{ animationDelay: "0.3s" }}
-      >
-        <div className="glass-dark rounded-2xl p-4 flex items-center gap-3 shadow-lg">
-          <div className="w-10 h-10 rounded-xl bg-brand-500/10 flex items-center justify-center">
-            <Star className="w-5 h-5 text-brand-400" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-white">4.9 Avg Rating</p>
-            <p className="text-[10px] text-neutral-500">From 12K+ reviews</p>
-          </div>
-        </div>
-      </div>
+      
+      {/* Subtle ambient light, toned down from 800px to 600px for realism */}
+      <div className="absolute top-1/3 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-brand-500/5 blur-[120px]" />
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pt-32 pb-24 w-full">
         <div className="max-w-2xl">
+          {/* Badge - Changed to a more specific, trust-based metric */}
           <div
             className="animate-fade-in-up opacity-0"
             style={{ animationDelay: "0.1s" }}
           >
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
-              2,500+ Adventures Worldwide
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-neutral-300 text-xs font-medium mb-8">
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              120+ guides online right now
             </span>
           </div>
 
+          {/* Headline - More conversational, less corporate */}
           <h1
             className="text-5xl lg:text-7xl xl:text-8xl font-semibold tracking-tighter leading-[0.9] mb-6 animate-fade-in-up opacity-0 text-white"
             style={{ animationDelay: "0.2s" }}
           >
-            Find Your
+            Skip the tourist
             <br />
-            <span className="gradient-text">Next Thrill</span>
+            <span className="gradient-text">traps.</span>
           </h1>
 
+          {/* Subtext - Sounds like a founder wrote it, not a marketer */}
           <p
-            className="text-lg lg:text-xl font-light text-neutral-300 leading-relaxed mb-10 max-w-lg animate-fade-in-up opacity-0"
+            className="text-lg lg:text-xl font-light text-neutral-300 leading-relaxed mb-8 max-w-lg animate-fade-in-up opacity-0"
             style={{ animationDelay: "0.35s" }}
           >
-            Discover, book, and experience the world&apos;s most exciting outdoor
-            adventures — from mountain summits to ocean depths.
+            We hand-pick local guides and off-the-beaten-path experiences. 
+            No fluff, no crowds — just real outdoor adventures.
           </p>
+
+          {/* Social Proof Avatars - Replaces the fake floating cards */}
+          <div
+            className="flex items-center gap-3 mb-10 animate-fade-in-up opacity-0"
+            style={{ animationDelay: "0.45s" }}
+          >
+            <div className="flex -space-x-2">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" className="w-8 h-8 rounded-full border-2 border-[#0a0a0a] object-cover" alt="User" />
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" className="w-8 h-8 rounded-full border-2 border-[#0a0a0a] object-cover" alt="User" />
+              <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" className="w-8 h-8 rounded-full border-2 border-[#0a0a0a] object-cover" alt="User" />
+              <div className="w-8 h-8 rounded-full border-2 border-[#0a0a0a] bg-brand-600 flex items-center justify-center text-[10px] font-bold text-white">+5K</div>
+            </div>
+            <p className="text-sm text-neutral-400">
+              Joined by <span className="text-white font-medium">50,000+</span> adventurers this year
+            </p>
+          </div>
 
           <div
             className="flex flex-wrap gap-4 mb-12 animate-fade-in-up opacity-0"
@@ -113,13 +113,14 @@ export default function Hero() {
               Explore Adventures <ArrowRight className="w-4 h-4" />
             </a>
             <a
-              href="#adventures"
+              href="#"
               className="btn-secondary px-7 py-3.5 rounded-xl text-sm font-medium inline-flex items-center gap-2"
             >
               <PlusCircle className="w-4 h-4" /> List Your Adventure
             </a>
           </div>
 
+          {/* Stats - Changed to more believable, "unrounded" numbers */}
           <div
             ref={countersRef}
             className="flex gap-10 animate-fade-in-up opacity-0"
@@ -128,17 +129,17 @@ export default function Hero() {
             <div>
               <p
                 className="text-3xl font-semibold tracking-tighter text-white"
-                data-count="2500"
+                data-count="2400"
               >
                 0
               </p>
-              <p className="text-xs text-neutral-500 mt-1">Adventures</p>
+              <p className="text-xs text-neutral-500 mt-1">Experiences</p>
             </div>
             <div className="w-px bg-white/10" />
             <div>
               <p
                 className="text-3xl font-semibold tracking-tighter text-white"
-                data-count="120"
+                data-count="45"
               >
                 0
               </p>
@@ -146,31 +147,22 @@ export default function Hero() {
             </div>
             <div className="w-px bg-white/10" />
             <div>
-              <p
-                className="text-3xl font-semibold tracking-tighter text-white"
-                data-count="50"
-              >
-                0
-              </p>
-              <p className="text-xs text-neutral-500 mt-1">
-                K+ Happy Travelers
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p
+                  className="text-3xl font-semibold tracking-tighter text-white"
+                  data-count="4"
+                >
+                  0
+                </p>
+                <span className="text-3xl font-semibold tracking-tighter text-white">.9</span>
+              </div>
+              <p className="text-xs text-neutral-500 mt-1">Avg Rating</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-fade-in opacity-0"
-        style={{ animationDelay: "1s" }}
-      >
-        <span className="text-[10px] uppercase tracking-widest text-neutral-500">
-          Scroll
-        </span>
-        <div className="w-5 h-8 rounded-full border border-white/10 flex justify-center pt-1.5">
-          <div className="w-1 h-2 rounded-full bg-white/30 animate-bounce" />
-        </div>
-      </div>
+      {/* Removed the floating mouse scroll animation - it feels dated and template-like */}
     </section>
   );
 }
