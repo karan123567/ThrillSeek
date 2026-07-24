@@ -39,7 +39,7 @@ export default function Navbar({ onOpenSearch, onOpenProfile }: NavbarProps) {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-brand-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
             <Mountain className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-semibold tracking-tighter text-th-text">
+          <span className="text-xl font-semibold tracking-tighter text-th-text hidden sm:inline">
             Thrill<span className="text-brand-500">Seek</span>
           </span>
         </a>
