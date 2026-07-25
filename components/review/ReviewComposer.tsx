@@ -479,7 +479,7 @@ export default function ReviewComposer({
         status: "published",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      };
+      } as any;
 
       await setDoc(
         doc(db, "reviews", reviewId), 
