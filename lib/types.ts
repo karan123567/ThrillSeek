@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export interface Adventure {
     id: number;
     name: string;
@@ -28,12 +30,25 @@ export interface Provider {
 }
 
 export interface Review {
-  name: string;
-  avatar: string;
-  adventure: string;
+  avatar: any;
+  name: ReactNode;
+  date: ReactNode;
+  id: string;
+  adventureId: number;
+  userId: string;
+  userName: string;
+  userPhoto: string;
+  userVerified: boolean;
+  adventureName: string;
   rating: number;
+  title: string;
   text: string;
-  date: string;
+  photos: string[];
+  helpfulCount: number;
+  reportCount: number;
+  status: "published" | "flagged" | "removed";
+  createdAt: { seconds: number };
+  updatedAt?: { seconds: number };
 }
 
 export type ToastType = 'success' | 'error' | 'info';

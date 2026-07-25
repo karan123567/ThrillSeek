@@ -1,9 +1,10 @@
 // "use client";
 
 // import { useRef, useCallback, useEffect } from "react";
-// import { ChevronLeft, ChevronRight, PenLine, Star, SlidersHorizontal } from "lucide-react";
+// import { ChevronLeft, ChevronRight, PenLine, Star } from "lucide-react";
 // import StarRating from "./review/StarRating";
 // import ReviewCard from "./review/ReviewCard";
+// import ReviewComposer from "./review/ReviewComposer";
 // import { useAuth } from "./auth/AuthProvider";
 // import { useToast } from "./Toast";
 // import {
@@ -16,56 +17,56 @@
 //   startAfter,
 //   getFirestore,
 // } from "firebase/firestore";
-// import type { Review as ReviewType } from "@/lib/types";
+// import type { Review } from "@/lib/types";
 // import { adventures } from "@/lib/data";
 
-// export default function Reviews({ onOpenReview }: { onOpenReview: (id: number) => void } {
+// interface ReviewWithMeta {
+//   review: Review & {
+//     id: string;
+//     createdAt: { seconds: number };
+//   };
+//   adventurePhoto?: string;
+//   adventureName: string;
+// }
+
+// export default function Reviews({
+//   onOpenReview,
+// }: {
+//     onOpenReview?: (id: number) => void;
+//   }) {
 //   const { user } = useAuth();
 //   const { showToast } = useToast();
 //   const scrollerRef = useRef<HTMLDivElement>(null);
 
-//   const [reviews, setReviews] = useState<ReviewType[]>([]);
+//   const [reviews, setReviews] = useState<Review[]>([]);
 //   const [totalReviews, setTotalReviews] = useState(0);
-//   const [lastReview, setLastReview] = useState<unknown>(null);
-//   const [sortBy, setSortBy] = useState<"newest" | "highest-rated" | "most-helpful">("newest");
+//   const [lastDoc, setLastDoc] = useState<unknown>(null);
 
 //   const fetchReviews = useCallback(async () => {
 //     if (!user) return;
 //     try {
-//       const q = collection("reviews").where("status", "==", "published");
+//       const q = collection("reviews").where("status", "==", "published")
+//         .orderBy("createdAt", "desc");
 
-//       if (sortBy === "highest-rated") {
-//         q = q.orderBy("rating", "desc");
-//       } else if (sortBy === "most-helpful") {
-//         q = q.orderBy("helpfulCount", "desc");
-//       } else {
-//         q = q.orderBy("createdAt", "desc");
-//       }
+//       const q2 = lastDoc ? q.startAfter(lastDoc) : q;
 
-//       let q2 = lastReview ? q.startAfter(lastReview) : q;
-
-//       try {
-//         const snap = await getDocs(q2, { pageSize: 6 });
-//         const data = snap.docs.map((d) => ({
-//           id: d.id,
-//           ...(d.data() as ReviewType),
-//         }));
-//         setReviews(data);
-//         setLastReview(snap.docs[snap.docs.length - 1]);
-//         setHasMore(!snap.metadata.hasPending);
-//         setTotalReviews(snap.size);
-//         setLoading(false);
-//       } catch {
-//         console.error("Error fetching reviews:", error);
-//         setReviews([]);
-//         setLoading(false);
-//       }
-//     };
-//   }, [user, sortBy]);
+//       const snap = await getDocs(q2, { pageSize: 6 });
+//       const data = snap.docs.map((d) => ({
+//         id: d.id,
+//         ...(d.data() as Review),
+//       }));
+//       setReviews(data);
+//       setLastDoc(snap.docs[snap.docs.length - 1]);
+//       setTotalReviews(snap.size);
+//     } catch {
+//       console.error("Error fetching reviews:", error);
+//       setReviews([]);
+//     }
+//   }, [user]);
 
 //   useEffect(() => {
 //     fetchReviews();
-//   }, [user, sortBy]);
+//   }, [user]);
 
 //   const scroll = (dir: number) => {
 //     scrollerRef.current?.scrollBy({ left: dir * 340, behavior: "smooth" });
@@ -77,7 +78,7 @@
 //         id: "s1", adventureId: 1, userId: "u1", userName: "Sarah Chen",
 //         userPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
 //         userVerified: true, adventureName: "Everest Base Camp Trek", rating: 5,
-//         title: "Life-changing experience!", text: "The guides were incredibly knowledgeable and the scenery was beyond words. Highly recommend to anyone seeking a real challenge.",
+//         title: "Life-changing experience!", text: "The guides were incredibly knowledgeable and the scenery was beyond words.",
 //         photos: [], helpfulCount: 12, reportCount: 0, status: "published",
 //         createdAt: { seconds: Date.now() - 1209600 },
 //       },
@@ -85,7 +86,8 @@
 //         id: "s2", adventureId: 2, userId: "u2", userName: "Marcus Johnson",
 //         userPhoto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
 //         userVerified: true, adventureName: "Bali Scuba Diving", rating: 5,
-//         title: "As a first-time diver, I felt completely safe.", text: "The coral reefs were absolutely stunning and we saw so many tropical fish.",
+//         title: "As a first-time diver, I felt completely safe.",
+//         text: "The coral reefs were absolutely stunning and we saw so many tropical fish.",
 //         photos: [], helpfulCount: 8, reportCount: 0, status: "published",
 //         createdAt: { seconds: Date.now() - 2592000 },
 //       },
@@ -99,15 +101,15 @@
 //       },
 //       {
 //         id: "s4", adventureId: 4, userId: "u4", userName: "James Park",
-//         userPhoto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
+//         userPhoto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face,
 //         userVerified: false, adventureName: "Rishikesh Rafting", rating: 4,
-//         title: "Great fun and amazing value!", text: "Only downside was the crowded starting point, but once on the river it was perfect.",
+//         title: "Great fun and amazing value!", text: "Only downside was the crowded starting point.",
 //         photos: [], helpfulCount: 3, reportCount: 0, status: "published",
 //         createdAt: { seconds: Date.now() - 5184000 },
 //       },
 //       {
 //         id: "s5", adventureId: 7, userId: "u5", userName: "Aisha Patel",
-//         userPhoto: "https://images.unsplash.com/photo-1534528232822-a0d7d1d8f2c?w=100&h=100&fit=crop=face",
+//         userPhoto: "https://images.unsplash.com/photo-1534528232822-a0d7d1d8f2c?w=100&h=100&fit=crop&crop=face",
 //         userVerified: true, adventureName: "Kenya Big Five Safari", rating: 5,
 //         title: "We saw all the Big Five within two days!",
 //         text: "Our guide had an incredible eye for spotting animals.",
@@ -123,7 +125,9 @@
 //         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
 //           <div className="flex items-end justify-between mb-12 reveal-on-scroll">
 //             <div>
-//               <span className="text-xs font-medium tracking-wider uppercase text-brand-500 mb-4 block">Testimonials</span>
+//               <span className="text-xs font-medium tracking-wider uppercase text-brand-500 mb-4 block">
+//                 Testimonials
+//               </span>
 //               <h2 className="text-4xl lg:text-5xl font-medium tracking-tighter mb-4">
 //                 Real <span className="gradient-text">Experiences</span>
 //               </h2>
@@ -133,13 +137,13 @@
 //                 onClick={() => scroll(-1)}
 //                 className="w-10 h-10 rounded-xl bg-th-input border border-th-border flex items-center justify-center hover:bg-th-card-hover transition-all"
 //               >
-//                 <ChevronLeft className="w-4 h-4 h-4" />
+//                 <ChevronLeft className="w-4 h-4" />
 //               </button>
 //               <button
 //                 onClick={() => scroll(1)}
 //                 className="w-10 h-10 rounded-xl bg-th-input border border-th-border flex items-center justify-center hover:bg-th-card-hover transition-all"
 //               >
-//                 <ChevronRight className="w-4 h-4 h-4" />
+//                 <ChevronRight className="w-4 h-4" />
 //               </button>
 //             </div>
 //           </div>
@@ -153,14 +157,15 @@
 //                   Share Your Adventure
 //                 </h3>
 //                 <p className="text-sm text-th-text-muted">
-//                   Help others find their perfect thrill.
+//                   Help others find their perfect thrill. Write a review.
 //                 </p>
 //               </div>
 //             </div>
 //             <button
 //               onClick={() => {
-//                 onOpenReview?.()}
-//                 className="btn-primary px-6 py-3 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2 whitespace-nowrap"
+//                 onOpenReview?.();
+//               }}
+//               className="btn-primary px-6 py-3 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2 whitespace-nowrap"
 //             >
 //               <Star className="w-4 h-4" />
 //               Write a Review
@@ -170,7 +175,6 @@
 //       </div>
 //     </>
 //   );
-// }
 //   }
 // }
 
@@ -188,62 +192,61 @@ import {
   collection,
   where,
   orderBy,
-  // startAfter,
+  startAfter,
   limit,
   getFirestore,
 } from "firebase/firestore";
-import type { Review as ReviewType } from "@/lib/types";
-import { adventures } from "@/lib/data";
+import type { Review } from "@/lib/types";
 
-export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) => void }) {
+interface ReviewWithMeta {
+  review: Review & {
+    id: string;
+    createdAt: { seconds: number };
+  };
+  adventurePhoto?: string;
+  adventureName: string;
+}
+
+export default function Reviews({
+  onOpenReview,
+}: {
+  onOpenReview?: (id: number) => void;
+}) {
   const { user } = useAuth();
   const { showToast } = useToast();
   const scrollerRef = useRef<HTMLDivElement>(null);
 
-  const [reviews, setReviews] = useState<ReviewType[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [totalReviews, setTotalReviews] = useState(0);
-  // const [lastReview, setLastReview] = useState<unknown>(null);
-  const [loading, setLoading] = useState(false);
-  const [sortBy, setSortBy] = useState<"newest" | "highest-rated" | "most-helpful">("newest");
+  const [lastDoc, setLastDoc] = useState<unknown>(null);
 
-    const fetchReviews = useCallback(async () => {
+  const fetchReviews = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
     try {
       const db = getFirestore();
-      
-      const constraints: any[] = [
+      const baseQuery = query(
         collection(db, "reviews"),
         where("status", "==", "published"),
-      ];
+        orderBy("createdAt", "desc"),
+        limit(6)
+      );
 
-      if (sortBy === "highest-rated") {
-        constraints.push(orderBy("rating", "desc"));
-      } else if (sortBy === "most-helpful") {
-        constraints.push(orderBy("helpfulCount", "desc"));
-      } else {
-        constraints.push(orderBy("createdAt", "desc"));
-      }
+      const q = lastDoc ? query(baseQuery, startAfter(lastDoc)) : baseQuery;
 
-      constraints.push(limit(6)); // Just fetch the latest 6 for the carousel
-
-      const q = query(...constraints);
       const snap = await getDocs(q);
-      
       const data = snap.docs.map((d) => ({
         id: d.id,
-        ...(d.data() as ReviewType),
+        ...(d.data() as Review),
       }));
       
       setReviews(data);
+      setLastDoc(snap.docs[snap.docs.length - 1] || null);
       setTotalReviews(snap.size);
     } catch (error) {
       console.error("Error fetching reviews:", error);
       setReviews([]);
-    } finally {
-      setLoading(false);
     }
-  }, [user, sortBy]); // <-- Notice lastReview is removed here!
+  }, [user, lastDoc]);
 
   useEffect(() => {
     fetchReviews();
@@ -253,14 +256,13 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
     scrollerRef.current?.scrollBy({ left: dir * 340, behavior: "smooth" });
   };
 
-  // Static fallback for non-logged-in users
   if (!user) {
     const staticReviews = [
       {
         id: "s1", adventureId: 1, userId: "u1", userName: "Sarah Chen",
         userPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
         userVerified: true, adventureName: "Everest Base Camp Trek", rating: 5,
-        title: "Life-changing experience!", text: "The guides were incredibly knowledgeable and the scenery was beyond words. Highly recommend to anyone seeking a real challenge.",
+        title: "Life-changing experience!", text: "The guides were incredibly knowledgeable and the scenery was beyond words.",
         photos: [], helpfulCount: 12, reportCount: 0, status: "published",
         createdAt: { seconds: Date.now() / 1000 - 1209600 },
       },
@@ -268,7 +270,8 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
         id: "s2", adventureId: 2, userId: "u2", userName: "Marcus Johnson",
         userPhoto: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
         userVerified: true, adventureName: "Bali Scuba Diving", rating: 5,
-        title: "As a first-time diver, I felt completely safe.", text: "The coral reefs were absolutely stunning and we saw so many tropical fish.",
+        title: "As a first-time diver, I felt completely safe.",
+        text: "The coral reefs were absolutely stunning and we saw so many tropical fish.",
         photos: [], helpfulCount: 8, reportCount: 0, status: "published",
         createdAt: { seconds: Date.now() / 1000 - 2592000 },
       },
@@ -284,7 +287,7 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
         id: "s4", adventureId: 4, userId: "u4", userName: "James Park",
         userPhoto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
         userVerified: false, adventureName: "Rishikesh Rafting", rating: 4,
-        title: "Great fun and amazing value!", text: "Only downside was the crowded starting point, but once on the river it was perfect.",
+        title: "Great fun and amazing value!", text: "Only downside was the crowded starting point.",
         photos: [], helpfulCount: 3, reportCount: 0, status: "published",
         createdAt: { seconds: Date.now() / 1000 - 5184000 },
       },
@@ -306,7 +309,9 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
           <div className="flex items-end justify-between mb-12 reveal-on-scroll">
             <div>
-              <span className="text-xs font-medium tracking-wider uppercase text-brand-500 mb-4 block">Testimonials</span>
+              <span className="text-xs font-medium tracking-wider uppercase text-brand-500 mb-4 block">
+                Testimonials
+              </span>
               <h2 className="text-4xl lg:text-5xl font-medium tracking-tighter mb-4">
                 Real <span className="gradient-text">Experiences</span>
               </h2>
@@ -327,7 +332,7 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
             </div>
           </div>
           
-          {/* Added Missing Scroller Map */}
+          {/* Added Missing Scroller and ReviewCard mapping */}
           <div ref={scrollerRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide -mx-6 px-6 reveal-on-scroll">
             {staticReviews.map((review) => (
               <ReviewCard
@@ -349,12 +354,14 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
                   Share Your Adventure
                 </h3>
                 <p className="text-sm text-th-text-muted">
-                  Help others find their perfect thrill.
+                  Help others find their perfect thrill. Write a review.
                 </p>
               </div>
             </div>
             <button
-              onClick={() => onOpenReview?.(0)}
+              onClick={() => {
+                onOpenReview?.(0);
+              }}
               className="btn-primary px-6 py-3 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2 whitespace-nowrap"
             >
               <Star className="w-4 h-4" />
@@ -366,7 +373,7 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
     );
   }
 
-  // Return block for logged-in users
+  // Added the return block for logged-in users so the component doesn't return undefined
   return (
     <>
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -374,7 +381,9 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
       <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
         <div className="flex items-end justify-between mb-12 reveal-on-scroll">
           <div>
-            <span className="text-xs font-medium tracking-wider uppercase text-brand-500 mb-4 block">Testimonials</span>
+            <span className="text-xs font-medium tracking-wider uppercase text-brand-500 mb-4 block">
+              Testimonials
+            </span>
             <h2 className="text-4xl lg:text-5xl font-medium tracking-tighter mb-4">
               Real <span className="gradient-text">Experiences</span>
             </h2>
@@ -394,30 +403,20 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
             </button>
           </div>
         </div>
-        
+
         <div ref={scrollerRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 scrollbar-hide -mx-6 px-6 reveal-on-scroll">
-          {loading ? (
-            <div className="flex items-center justify-center w-full py-12 text-th-text-muted text-sm">
-              Loading reviews...
-            </div>
-          ) : reviews.length > 0 ? (
-            reviews.map((review) => {
-              const adventure = adventures.find((a) => a.id === review.adventureId);
-              return (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  adventureName={adventure?.name || "Unknown Adventure"}
-                  adventurePhoto={adventure?.image}
-                  onOpenDetail={() => onOpenReview?.(review.adventureId)}
-                />
-              );
-            })
-          ) : (
-            <div className="flex items-center justify-center w-full py-12 text-th-text-muted text-sm">
-              No reviews yet. Be the first to share!
-            </div>
-          )}
+          {reviews.map((review) => {
+            const adventure = adventures.find((a) => a.id === review.adventureId);
+            return (
+              <ReviewCard
+                key={review.id}
+                review={review}
+                adventureName={adventure?.name || "Unknown Adventure"}
+                adventurePhoto={adventure?.image}
+                onOpenDetail={() => onOpenReview?.(review.adventureId)}
+              />
+            );
+          })}
         </div>
 
         <div className="mt-12 glass rounded-2xl p-6 sm:p-8 flex flex-col lg:flex-row items-center justify-between gap-6 reveal-on-scroll">
@@ -430,12 +429,14 @@ export default function Reviews({ onOpenReview }: { onOpenReview?: (id: number) 
                 Share Your Adventure
               </h3>
               <p className="text-sm text-th-text-muted">
-                Help others find their perfect thrill.
+                Help others find their perfect thrill. Write a review.
               </p>
             </div>
           </div>
           <button
-            onClick={() => onOpenReview?.(0)}
+            onClick={() => {
+              onOpenReview?.(0);
+            }}
             className="btn-primary px-6 py-3 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2 whitespace-nowrap"
           >
             <Star className="w-4 h-4" />
