@@ -5,9 +5,22 @@ import { X, Loader2 } from "lucide-react";
 import { collection, addDoc, serverTimestamp, getFirestore } from "firebase/firestore";
 import { ProviderListing } from "@/lib/types";
 import { useAuth } from "./auth/AuthProvider";
+import { getAuth } from "firebase/auth";
 import { useToast } from "./Toast";
 
 const GST_RATE = 0.18;
+
+// add this helper function above the component
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if ((window as any).Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 export default function BookingModal({ listing, onClose }: { listing: ProviderListing | null; onClose: () => void }) {
   const { user } = useAuth();
@@ -25,48 +38,99 @@ export default function BookingModal({ listing, onClose }: { listing: ProviderLi
   const totalAmount = subtotal + gstAmount;
 
   const handleConfirm = async () => {
-    if (!user) {
-      showToast("Sign in to book this adventure.", "error");
-      return;
-    }
-    if (quantity < 1 || quantity > seatsLeft) {
-      showToast(`Only ${seatsLeft} seats available for this slot.`, "error");
-      return;
-    }
+  if (!user) {
+    showToast("Sign in to book this adventure.", "error");
+    return;
+  }
+  if (quantity < 1 || quantity > seatsLeft) {
+    showToast(`Only ${seatsLeft} seats available for this slot.`, "error");
+    return;
+  }
 
-    setSubmitting(true);
-    try {
-      const db = getFirestore();
-      await addDoc(collection(db, "bookings"), {
-        listingId: listing.id,
-        providerId: listing.providerId,
-        customerId: user.uid,
-        customerName: user.displayName || "",
-        customerEmail: user.email || "",
-        listingName: listing.name,
-        unitPrice: listing.price,
-        quantity,
-        subtotal,
-        gstAmount,
-        totalAmount,
-        bookingDate: slot.date,
-        bookingTime: slot.time,
-        status: "pending_payment",
-        razorpayOrderId: null,
-        razorpayPaymentId: null,
-        invoiceNumber: null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-      showToast("Booking created — payment step coming next.", "success");
-      onClose();
-    } catch (error) {
-      console.error(error);
-      showToast("Failed to create booking.", "error");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  setSubmitting(true);
+  try {
+    const db = getFirestore();
+    const bookingRef = await addDoc(collection(db, "bookings"), {
+      listingId: listing.id,
+      providerId: listing.providerId,
+      customerId: user.uid,
+      customerName: user.displayName || "",
+      customerEmail: user.email || "",
+      listingName: listing.name,
+      unitPrice: listing.price,
+      quantity,
+      subtotal,
+      gstAmount,
+      totalAmount,
+      bookingDate: slot.date,
+      bookingTime: slot.time,
+      status: "pending_payment",
+      razorpayOrderId: null,
+      razorpayPaymentId: null,
+      invoiceNumber: null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+
+    const idToken = await getAuth().currentUser?.getIdToken();
+    if (!idToken) throw new Error("Not signed in");
+
+    const orderRes = await fetch("/api/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({ bookingId: bookingRef.id }),
+    });
+    const orderData = await orderRes.json();
+    if (!orderRes.ok) throw new Error(orderData.error || "Failed to create order");
+
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) throw new Error("Failed to load Razorpay checkout");
+
+    const rzp = new (window as any).Razorpay({
+      key: orderData.keyId,
+      amount: orderData.amount,
+      currency: orderData.currency,
+      order_id: orderData.orderId,
+      name: "Thrillseek",
+      description: listing.name,
+      prefill: { name: user.displayName || "", email: user.email || "" },
+      theme: { color: "#ff6b2c" },
+      handler: async (response: any) => {
+        try {
+          const verifyRes = await fetch("/api/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({
+              bookingId: bookingRef.id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          });
+          const verifyData = await verifyRes.json();
+          if (!verifyRes.ok) throw new Error(verifyData.error || "Verification failed");
+          showToast(`Payment successful! Invoice: ${verifyData.invoiceNumber}`, "success");
+          onClose();
+        } catch (err) {
+          console.error(err);
+          showToast("Payment succeeded but verification failed — contact support.", "error");
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          showToast("Payment cancelled — your booking is saved as pending.", "info");
+        },
+      },
+    });
+
+    rzp.open();
+  } catch (error) {
+    console.error(error);
+    showToast("Failed to start payment.", "error");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
