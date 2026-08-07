@@ -24,11 +24,14 @@ import WishlistModal from "@/components/wishlist/WishlistModal";
 import ScrollReveal from "@/components/ScrollReveal";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import { adventures } from "@/lib/data";
-import { Adventure } from "@/lib/types";
+import { Adventure, ProviderListing } from "@/lib/types";
 import { useToast } from "@/components/Toast";
+import LiveAdventures from "@/components/LiveAdventures";
+import BookingModal from "@/components/BookingModal";
 
 export default function Home() {
   const { showToast } = useToast();
+  const [bookingListing, setBookingListing] = useState<ProviderListing | null>(null);
 
   /* ---- modal states ---- */
   const [searchOpen, setSearchOpen] = useState(false);
@@ -148,6 +151,7 @@ export default function Home() {
             onSort={handleSort}
           />
         </div>
+        <LiveAdventures onBook={setBookingListing} />
       </section>
 
       <Categories
@@ -187,6 +191,7 @@ export default function Home() {
         onClose={() => setDetailOpen(false)}
         adventureId={detailId}
       />
+      <BookingModal listing={bookingListing} onClose={() => setBookingListing(null)} />
       <AuthModal
         isOpen={authOpen}
         onClose={() => setAuthOpen(false)}

@@ -51,4 +51,32 @@ export interface Review {
   updatedAt?: { seconds: number };
 }
 
+export interface ScheduleSlot {
+  date: string;
+  time: string;
+  capacity: number;
+  booked: number;
+}
+
+export interface ProviderListing {
+  id: string;
+  providerId: string;
+  name: string;
+  category: 'trekking' | 'water' | 'aerial' | 'winter' | 'wildlife';
+  difficulty: 'easy' | 'moderate' | 'hard' | 'extreme';
+  location: string;
+  duration: string;
+  groupSize: number;
+  price: number;
+  currency: string;
+  description: string;
+  inclusions: string;
+  exclusions: string;
+  requirements: string;
+  cancellationPolicy: string;
+  status: 'draft' | 'published' | 'paused' | 'archived';
+  gallery: string[];
+  schedule: ScheduleSlot[];
+}
+
 export type ToastType = 'success' | 'error' | 'info';
