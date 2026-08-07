@@ -230,13 +230,26 @@ export default function ListingsPage() {
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-th-border">
-            <button type="button" onClick={() => setIsCreating(false)} className="px-6 py-2.5 rounded-xl text-sm font-medium text-th-text-sub border border-th-border hover:bg-th-input transition-colors">
-              Cancel
-            </button>
-            <button type="submit" disabled={submitting} className="btn-primary px-6 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2 disabled:opacity-60">
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save as Draft"}
-            </button>
-          </div>
+  <button type="button" onClick={() => setIsCreating(false)} className="px-6 py-2.5 rounded-xl text-sm font-medium text-th-text-sub border border-th-border hover:bg-th-input transition-colors">
+    Cancel
+  </button>
+  <button
+    type="submit"
+    onClick={() => updateField('status', 'draft')}
+    disabled={submitting}
+    className="px-6 py-2.5 rounded-xl text-sm font-medium text-th-text border border-th-border hover:bg-th-input transition-colors disabled:opacity-60"
+  >
+    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save as Draft"}
+  </button>
+  <button
+    type="submit"
+    onClick={() => updateField('status', 'published')}
+    disabled={submitting}
+    className="btn-primary px-6 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2 disabled:opacity-60"
+  >
+    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish Now"}
+  </button>
+</div>
         </form>
       )}
 
