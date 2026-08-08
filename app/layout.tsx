@@ -20,7 +20,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Theme: set before first paint to prevent flash */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem("thrillseek-theme");if(!t)t=window.matchMedia("(prefers-color-scheme:light)").matches?"light":"dark";document.documentElement.setAttribute("data-theme",t)})()`,
+            __html: `(function(){var t=localStorage.getItem("thrillseek-theme");
+            if(!t)t="light";
+            document.documentElement.setAttribute("data-theme",t)})()`,
           }}
         />
         {/* Firebase SDK (required for phone auth reCAPTCHA) */}
